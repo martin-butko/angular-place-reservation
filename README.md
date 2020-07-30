@@ -1,7 +1,9 @@
 # Angular Place Dynamic Reservation System
-*This application was created as a result of a diploma thesis.*
-Author: Martin Butko
-Open source
+- *This application was created as a result of a diploma thesis.*
+
+- Author: Martin Butko
+
+- Open source
 ***
 The reservation system is intended for creating reservation schemes for various types of events, such as workshops, cinemas, presentations, etc.
 You can create events and set image (representing event map scheme) as background of SVG canvas.
