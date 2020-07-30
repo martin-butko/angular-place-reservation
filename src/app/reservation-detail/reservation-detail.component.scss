@@ -1,0 +1,44 @@
+$colorSelected: #f6ff00; // yellow
+$colorOnHold: #ffb217; // orange
+$colorAvailable: #00ff44; // green
+$colorNotAvailable: #ff4336; // red
+
+.shape {
+    transition: fill 0.5s ease;
+}
+
+.text-xs {
+    font-size: 0.7rem;
+}
+
+.shape-detail {
+    min-width: 350px;
+}
+
+.legend-rect {
+    width: 10px;
+    height: 10px;
+    border: #000 solid 1px;
+    display: inline-block;
+}
+
+.legend-span {
+    margin-right: 10px;
+    display: inline;
+}
+
+.yellow-rect {
+    background-color: $colorSelected;
+}
+
+.green-rect {
+    background-color: $colorAvailable;
+}
+
+.red-rect {
+    background-color: $colorNotAvailable;
+}
+
+.orange-rect {
+    background-color: $colorOnHold;
+}

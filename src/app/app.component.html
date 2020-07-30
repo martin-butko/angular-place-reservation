@@ -1,0 +1,37 @@
+<header>
+  <img height="80" width="80" src="./../assets/resCalendar.png" class="logo" />
+  <h1>Reservation system SVG</h1>
+
+  <p>Make reservation scheme for your own event!</p>
+</header>
+
+<!-- Mock user console -->
+<div class="card shadow m-3 mt-4">
+  <div class="card-header py-3">
+    <p class="text-primary m-0 font-weight-bold">User Console</p>
+  </div>
+  <div class="card-body">
+
+    <div class="container-fluid">
+      <div class="form-inline row">
+        <label for="textUserKey" class="m-2">User KeyID</label>
+        <input type="text" class="form-control m-2" id="textUserKey" [(ngModel)]="userKey">
+
+        <label for="textUserInfo" class="m-2">User Info</label>
+        <input type="text" class="form-control m-2 user-info" id="textUserInfo" [(ngModel)]="userInfo">
+
+        <div class="custom-control custom-switch m-2">
+          <input class="custom-control-input" type="checkbox" id="checkAdmin" [(ngModel)]="isAdmin">
+          <label class="custom-control-label" for="checkAdmin">Admin</label>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="m-3">
+  <!-- RESERVATIONS COMPONENT -->
+  <app-reservations [isAdmin]="isAdmin" [userKey]="userKey" [userInfo]="userInfo">
+  </app-reservations>
+</div>

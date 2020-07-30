@@ -1,0 +1,373 @@
+<h3 class="text-center text-dark font-weight-normal">Detail podujatia</h3>
+
+<!-- Load content if Reservation Scheme is not null -->
+<ng-container *ngIf="reservationScheme">
+
+  <div class="row align=items-center no-gutters mb-3">
+    <div class="col">
+      <div class="text-uppercase text-primary font-weight-normal">
+        <span>Názov podujatia</span>
+      </div>
+      <input *ngIf="editedScheme" type="text" class="form-control" id="shapeInfo" name="shapeInfo"
+        [(ngModel)]="editedScheme.name">
+      <div *ngIf="!editedScheme" class="text-dark font-weight-normal mb-0">
+        <span>{{reservationScheme.name}}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="row align=items-center no-gutters mb-3">
+    <div class="col">
+      <div class="text-uppercase text-primary font-weight-normal">
+        <span>Popis podujatia</span>
+      </div>
+      <textarea *ngIf="editedScheme" name="info" class="form-control" id="info" rows="4"
+        [(ngModel)]="editedScheme.info"></textarea>
+      <div *ngIf="!editedScheme" class="text-dark font-weight-normal mb-0">
+        <span style="white-space: pre-line;">{{reservationScheme.info}}</span>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="isAdmin" class="row align=items-center no-gutters mb-3">
+    <div class="col">
+      <div class="text-uppercase text-primary font-weight-normal">
+        <span>Obdobie rezervácií pre zákazníkov</span>
+      </div>
+      <ng-container *ngIf="editedScheme">
+        <p-calendar [(ngModel)]="rangeDates" selectionMode="range" [readonlyInput]="false" [showTime]="true"
+          inputStyleClass="form-control" name="dates" id="dates" [style]="{'width':'100%'}"
+          [inputStyle]="{'width':'100%','background-color':'white'}" dateFormat="dd.mm.yy" [readonlyInput]="true"
+          showButtonBar="true"></p-calendar>
+        <small id="datesHelp" class="form-text text-muted">Vyberte dátum začiatku alebo rozmedzie dvoch dátumov.<br>Pri
+          vynechaní, budú umožnené rezervácie stále.</small>
+      </ng-container>
+
+      <div *ngIf="!editedScheme" class="text-dark font-weight-normal mb-0">
+        <span
+          *ngIf="reservationScheme.reservationsStart">{{getDateFromString(this.reservationScheme.reservationsStart) | date:'dd.MM.yyyy HH:mm'}}</span>
+        <span *ngIf="reservationScheme.reservationsEnd"> -
+          {{getDateFromString(this.reservationScheme.reservationsEnd) | date:'dd.MM.yyyy HH:mm'}}</span>
+      </div>
+    </div>
+  </div>
+
+  <button *ngIf="!isEditingScheme && isAdmin" class="btn btn-primary mt-3" (click)="editReservationScheme()"><i
+      class="fas fa-edit"></i> Upraviť</button>
+
+  <ng-container *ngIf="isEditingScheme && isAdmin">
+    <button class="btn btn-primary mt-3 mr-2" (click)="saveEditedReservationScheme()"><i
+        class="far fa-check-circle"></i> Potvrdiť
+      úpravy</button>
+    <button class="btn btn-danger mt-3" (click)="cancelEditedReservationScheme()"><i class="fas fa-ban"></i> Zrušiť
+      úpravy</button>
+  </ng-container>
+  <hr>
+
+  <!-- Map Image -->
+
+  <!-- ADMIN Functions for SVG -->
+  <ng-container *ngIf="isAdmin && !isEditingScheme">
+
+    <div *ngIf="!mapImage || isChangeMapImage" class="form-group">
+      <label for="mapImage">Obrázok mapy podujatia</label>
+      <div>
+        <label class="btn btn-primary mb-0">
+          Vybrať súbor <input type="file" accept=".png,.jpg" (change)="selectFile($event)" hidden>
+        </label>
+        <ng-container *ngIf="file"> {{file.name}}</ng-container>
+        <ng-container *ngIf="!file"> Nie je vybratý žiadny súbor</ng-container>
+        <small id="setInfoHelp" class="form-text text-muted">Podporované formáty sú: .png a .jpg</small>
+      </div>
+
+      <button type="button" class="btn btn-primary mr-2 mt-3" (click)="uploadMapImage()" [disabled]="file == null"><i
+          class="fas fa-upload"></i> Nahrať</button>
+      <button *ngIf="mapImage && isChangeMapImage" type="button" class="btn btn-danger mt-3"
+        (click)="cancelChangeMapImage()"><i class="fas fa-ban"></i> Zrušiť</button>
+
+      <hr>
+    </div>
+
+    <!-- SVG - stuff for creating Shape -->
+
+    <button *ngIf="!newShape" class="btn btn-primary mt-3 mr-2" (click)="addNewShapeOnCanvas()">
+      <i class="fas fa-plus-square"></i> Vytvoriť nové miesto
+    </button>
+
+    <button *ngIf="mapImage && !isChangeMapImage" type="button" class="btn btn-primary mt-3"
+      (click)="changeMapImage()"><i class="far fa-image"></i> Zmeniť obrázok</button>
+
+    <ng-container *ngIf="newShape">
+      <div class="card mt-4 mb-1">
+        <div class="card-header py-3">
+          <p class="text-primary m-0 font-weight-bold">Nové miesto</p>
+        </div>
+        <div class="card-body">
+
+          <div class="container-fluid">
+            <div class="row">
+
+              <div class="col-4 com-sm-3 col-md-2 pl-0">
+                <div class="form-group">
+                  <label>Tvar miesta</label>
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="radioSquare" [(ngModel)]="newShapeIsSquare"
+                      [value]="true" (click)="resizeNewShape(newShapeWidth, newShapeWidth)">
+                    <label class="form-check-label" for="radioSquare">Štvorec</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="radioRect" [(ngModel)]="newShapeIsSquare"
+                      [value]="false">
+                    <label class="form-check-label" for="radioRect">Obdĺžnik</label>
+                  </div>
+                </div>
+              </div>
+
+              <div *ngIf="newShapeIsSquare" class="col">
+                <div class="form-group">
+                  <label>Veľkosť miesta (px)</label>
+                  <input class="form-control" type="text" [ngModel]="newShapeWidth" #widthText
+                    (keyup.enter)="resizeNewShape(widthText.value, widthText.value)"
+                    (blur)="resizeNewShape(+widthText.value, +widthText.value)">
+                  <input class="form-control-range" type="range" [(ngModel)]="newShapeWidth" [min]="minShapeSize"
+                    [max]="maxShapeSize" #widthRanger
+                    (ngModelChange)="resizeNewShape(widthRanger.value, widthRanger.value)">
+                </div>
+              </div>
+
+              <div *ngIf="!newShapeIsSquare" class="col">
+                <div class="form-group">
+                  <label>Šírka miesta (px)</label>
+                  <input class="form-control" type="text" [ngModel]="newShapeWidth" #widthText
+                    (keyup.enter)="resizeNewShape(widthText.value, newShapeHeight)"
+                    (blur)="resizeNewShape(+widthText.value, newShapeHeight)">
+                  <input class="form-control-range" type="range" [(ngModel)]="newShapeWidth" [min]="minShapeSize"
+                    [max]="maxShapeSize" #widthRanger
+                    (ngModelChange)="resizeNewShape(widthRanger.value, newShapeHeight)">
+                </div>
+              </div>
+
+              <div *ngIf="!newShapeIsSquare" class="col">
+                <div class="form-group">
+                  <label>Výška miesta (px)</label>
+                  <input class="form-control" type="text" [ngModel]="newShapeHeight" #heightText
+                    (keyup.enter)="resizeNewShape(newShapeWidth, heightText.value)"
+                    (blur)="resizeNewShape(newShapeWidth, +heightText.value)">
+                  <input class="form-control-range" type="range" [(ngModel)]="newShapeHeight" [min]="minShapeSize"
+                    [max]="maxShapeSize" #heightRanger
+                    (ngModelChange)="resizeNewShape(newShapeWidth, heightRanger.value)">
+                </div>
+              </div>
+
+              <div class="col">
+                <div class="form-group">
+                  <label>Otočenie miesta (°)</label>
+                  <div class="input-group">
+                    <div class="input-group-prepend">
+                      <button class="btn btn-primary" (click)="rotateNewShape()">
+                        <i class="fas fa-redo-alt"></i>
+                      </button>
+                    </div>
+                    <input class="form-control" type="number" [(ngModel)]="newShapeRotation" #rotationNumber min="0"
+                      max="360">
+                    <div class="input-group-append">
+                      <button class="btn btn-primary" (click)="rotateNewShapeBack()">
+                        <i class="fas fa-undo-alt"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+            <!--End of row-->
+            <div class="row">
+              <hr class="col">
+            </div>
+            <div class="row">
+
+              <div class="col pl-0">
+                <div class="form-group">
+                  <label>Popis nového miesta</label>
+                  <input class="form-control" type="text" [(ngModel)]="newShapeInfo">
+                </div>
+              </div>
+
+              <div class="col">
+                <div class="form-group">
+                  <label>Cena nového miesta</label>
+                  <input class="form-control" type="number" [(ngModel)]="newShapePrice">
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <button class="btn btn-primary mr-2 mt-3" (click)="saveNewShape()" [disabled]="newShapePrice < 0">
+            <i class="fas fa-check-square"></i> Uložiť miesto
+          </button>
+          <button class="btn btn-danger mt-3" (click)="resetNewShape()">
+            <i class="fas fa-window-close"></i> Zrušiť miesto
+          </button>
+
+        </div>
+      </div>
+
+    </ng-container>
+
+    <!-- End of ADMIN Functions -->
+  </ng-container>
+
+</ng-container>
+
+<!-- Wrapper for SVG and manipulation bars(e.g. selecting shape) -->
+<div [hidden]="isEditingScheme">
+
+  <div class="mr-3" [hidden]="!reservationScheme" style="display: inline-block;">
+    <svg id="canvas" class="border" [attr.width]="canvasWidth" [attr.height]="canvasHeight" (click)="unselectShape()">
+      <image *ngIf="mapImage" [attr.href]="mapImage.url" [attr.width]="canvasWidth" [attr.height]="canvasHeight">
+      </image>
+
+      <!-- SHAPES -->
+      <ng-container *ngIf="reservationScheme">
+        <ng-container *ngFor="let shape of reservationScheme.shapes">
+          <rect class="shape" [attr.x]="shape.x" [attr.y]="shape.y" [attr.width]="shape.width"
+            [attr.height]="shape.height" [attr.transform]="shape.transform" [attr.fill]="getFillOfShape(shape)"
+            (click)="selectShape(shape)" style="stroke-width: 1; stroke:#000"
+            [style.cursor]="getCursorOfShape(shape)" />
+        </ng-container>
+      </ng-container>
+
+    </svg>
+  </div>
+
+  <div *ngIf="selectedShape" style="display: inline-block; vertical-align:top;" class="card shape-detail">
+    <div class="card-header py-3">
+      <p class="text-primary m-0 font-weight-bold">Označené miesto</p>
+    </div>
+    <div class="card-body">
+
+      <div class="row align=items-center no-gutters mb-3">
+        <div class="col">
+          <div class="text-uppercase text-primary font-weight-normal">
+            <span>Popis</span>
+          </div>
+          <input *ngIf="editedShape" type="text" class="form-control" id="shapeInfo" name="shapeInfo"
+            [(ngModel)]="editedShape.info">
+          <div *ngIf="!editedShape" class="text-dark font-weight-normal mb-0">
+            <span>{{selectedShape.info}}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="row align=items-center no-gutters mb-3">
+        <div class="col">
+          <div class="text-uppercase text-primary font-weight-normal">
+            <span>Cena</span>
+          </div>
+          <input *ngIf="editedShape" type="text" class="form-control" id="shapePrice" name="shapePrice"
+            [(ngModel)]="editedShape.price">
+          <div *ngIf="!editedShape" class="text-dark font-weight-normal mb-0">
+            <span>{{selectedShape.price}}€</span>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="!selectedShape.available && isAdmin" class="row align=items-center no-gutters mb-3">
+        <div class="col">
+          <div class="text-uppercase text-primary font-weight-normal">
+            <span>Poznámka</span>
+          </div>
+          <input *ngIf="editedShape" type="text" class="form-control" id="shapeReservationInfo"
+            name="shapeReservationInfo" [(ngModel)]="editedShape.reservationInfo">
+          <div *ngIf="!editedShape" class="text-dark font-weight-normal mb-0">
+            <span>{{selectedShape.reservationInfo}}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Timer -->
+      <div *ngIf="holdMins" class="text-uppercase" style="color: #ff0000;">
+        Na rezerváciu zostáva 
+        <span *ngIf="holdMins" class="font-weight-bold">{{holdMins}}</span>
+        <span *ngIf="holdSecs" class="font-weight-bold"> : {{holdSecs}}</span>
+      </div>
+
+      <hr>
+
+      <!-- Main Buttons -->
+      <ng-container *ngIf="!isEditingShape">
+        <button class="btn btn-primary mt-3" (click)="unselectShape()"><i class="fas fa-step-backward"></i>
+          Odznačiť</button>
+        <button *ngIf="selectedShape.available" class="btn btn-primary mt-3 ml-2" (click)="reserveSelectedShape()"><i
+            class="fas fa-check"></i> Rezervovať</button>
+
+        <!-- ADMIN Functions on shape -->
+        <ng-container *ngIf="isAdmin">
+
+          <button *ngIf="selectedShape.available" class="btn btn-primary mt-3 ml-2"
+            (click)="showDialogSetNotAvailable()"><i class="fas fa-lock"></i> Obsaďiť</button>
+          <button *ngIf="!selectedShape.available" class="btn btn-primary mt-3 ml-2"
+            (click)="setAvailableOfSelected()"><i class="fas fa-lock-open"></i> Uvoľniť</button>
+          <button *ngIf="!isEditingShape" class="btn btn-primary mt-3 ml-2" (click)="editSelectedShape()"><i
+              class="fas fa-edit"></i> Upraviť</button>
+          <button class="btn btn-danger mt-3 ml-2" (click)="deleteSelectedShape()"><i class="fas fa-trash"></i>
+            Zmazať</button>
+
+        </ng-container>
+      </ng-container>
+      <!-- Edit buttons -->
+      <ng-container *ngIf="isEditingShape && isAdmin">
+        <button class="btn btn-primary mt-3 ml-2" (click)="saveEditedShape()"><i class="far fa-check-circle"></i>
+          Potvrdiť
+          úpravy</button>
+        <button class="btn btn-danger mt-3 ml-2" (click)="cancelEditedShape()"><i class="fas fa-ban"></i> Zrušiť
+          úpravy</button>
+      </ng-container>
+
+
+    </div>
+  </div>
+
+  <div>
+    <span class="mr-2">
+      <div class="legend-rect yellow-rect mr-1"></div>
+      <span>Označené miesto</span>
+    </span>
+    <span class="mr-2">
+      <div class="legend-rect green-rect mr-1"></div>
+      <span>Voľné miesto</span>
+    </span>
+    <span class="mr-2">
+      <div class="legend-rect red-rect mr-1"></div>
+      <span>Obsadené miesto</span>
+    </span>
+    <span>
+      <div class="legend-rect orange-rect mr-1"></div>
+      <span>Niekto si prezerá</span>
+    </span>
+  </div>
+
+
+</div>
+<!--End of SVG stuff container-->
+
+<form #formSetAvailable="ngForm" (ngSubmit)="setNotAvailableOfSelected(setNotAvailableInfo)">
+  <p-dialog [header]="'Obsaď stánok'" [(visible)]="displayDialogSetNotAvailable" [modal]="true"
+    [style]="{width: '30vw'}">
+    <div class="form-group mb-3 mt-3">
+      <label for="setInfo">Poznámka ku obsadeniu</label>
+      <input type="text" class="form-control" id="setInfo" name="setInfo" required [(ngModel)]="setNotAvailableInfo">
+      <small id="setInfoHelp" class="form-text text-muted">Zadajte poznámku ku rezervácií (meno,adresa,..)</small>
+    </div>
+
+    <p-footer>
+      <button type="submit" class="btn btn-success" [disabled]="formSetAvailable.invalid">Obsadiť stánok</button>
+    </p-footer>
+  </p-dialog>
+</form>
+
+<!-- BUTTONS -->
+<hr>
+<button type="button" class="btn btn-primary" (click)="goBack()"><i class="fas fa-chevron-left"></i> Späť na
+  zoznam</button>

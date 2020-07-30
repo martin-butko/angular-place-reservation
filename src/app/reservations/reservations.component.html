@@ -1,0 +1,106 @@
+<ng-container *ngIf="!selectedDetailKey">
+
+  <h3 class="text-center text-dark font-weight-normal">Zoznam podujatí</h3>
+
+  <p *ngIf="!reservationSchemes.length" class="ml-3">Zoznam podujatí je prázdny</p>
+
+  <table *ngIf="reservationSchemes.length" class="table">
+    <thead class="thead-light">
+      <tr>
+        <th scope="col">Názov</th>
+        <th scope="col">Obsadenosť</th>
+        <th scope="col">Možnosti</th>
+        <th *ngIf="isAdmin" scope="col">Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let scheme of reservationSchemes">
+        <ng-container *ngIf="isReservationSchemeAvailable(scheme) || isAdmin">
+          <td class="list-group-item-action" style="cursor: pointer;" (click)="showReservationSchemeDetail(scheme)">
+            {{scheme.name}}
+          </td>
+
+          <td class="text-center">
+            {{getNumberOfNotAvailableShapes(scheme)}} / {{getNumberOfAllShapes(scheme)}}
+          </td>
+
+          <td class="text-center">
+            <button class="btn btn-primary btn-sm" (click)="showDialogGraph(scheme)"
+              [disabled]="getNumberOfAllShapes(scheme) == 0" pTooltip="Prehľad obsadenosti">
+              <i class="fas fa-chart-pie"></i>
+            </button>
+            <!-- Admin functions -->
+            <ng-container *ngIf="isAdmin">
+              <button class="btn btn-danger btn-sm ml-1" (click)="deleteReservationSchemeByKey(scheme.key)"
+                pTooltip="Zmaž podujatie">
+                <i class="fas fa-trash-alt"></i>
+              </button>
+            </ng-container>
+          </td>
+
+          <td *ngIf="isAdmin" class="text-center">
+            <i *ngIf="isReservationSchemeAvailable(scheme)" class="fas fa-circle fa-2x" style="color: rgb(55, 231, 55);"
+              pTooltip="Dostupné pre zákazníka"></i>
+            <i *ngIf="!isReservationSchemeAvailable(scheme)" class="fas fa-circle fa-2x"
+              style="color: rgb(236, 20, 20);" pTooltip="Nedostupné pre zákazníka"></i>
+          </td>
+        </ng-container>
+      </tr>
+    </tbody>
+  </table>
+
+  <form #formAdd="ngForm" (ngSubmit)="addNewReservationScheme()">
+    <p-dialog header="Nové podujatie" [(visible)]="displayDialogAdd" [modal]="true" [style]="{width: '30vw'}"
+      (onHide)="onDialogAddHide($event)" [contentStyle]="{'overflow': 'visible'}">
+
+      <div class="form-group mb-3 mt-3">
+        <label for="name">Názov nového podujatia</label>
+        <input type="text" class="form-control" id="name" name="name" placeholder="Zadajte názov" required
+          [(ngModel)]="newReservationScheme.name">
+      </div>
+      <div class="form-group mb-3 mt-3">
+        <label for="info">Popis podujatia</label>
+        <textarea name="info" class="form-control" id="info" rows="4"
+          [(ngModel)]="newReservationScheme.info"></textarea>
+      </div>
+
+      <div class="form-group mb-3 mt-3">
+        <label for="dates">Obdobie rezervácií pre zákazníkov</label>
+        <p-calendar [(ngModel)]="rangeDates" selectionMode="range" [readonlyInput]="false" [showTime]="true"
+          inputStyleClass="form-control" name="dates" id="dates" [style]="{'width':'100%'}"
+          [inputStyle]="{'width':'100%','background-color':'white'}" dateFormat="dd.mm.yy" [readonlyInput]="true"
+          showButtonBar="true"></p-calendar>
+        <small id="datesHelp" class="form-text text-muted">Vyberte dátum začiatku alebo rozmedzie dvoch dátumov.<br>Pri
+          vynechaní, budú umožnené rezervácie stále. (možné neskôr zmeniť)</small>
+      </div>
+
+      <p-footer>
+        <button type="submit" class="btn btn-success" [disabled]="formAdd.invalid">Vytvoriť</button>
+      </p-footer>
+
+    </p-dialog>
+  </form>
+
+  <p-dialog [header]="graphName" [(visible)]="displayDialogGraph" [modal]="true" [style]="{width: '30vw'}">
+    <ng-container *ngIf="graphData">
+      <p-chart type="doughnut" [data]="graphData"></p-chart>
+    </ng-container>
+  </p-dialog>
+
+  <!-- BUTTONS -->
+  <hr>
+  <!-- Admin -->
+  <ng-container *ngIf="isAdmin">
+    <button type="button" class="btn btn-primary" (click)="showDialogAdd()">
+      <i class="fas fa-plus-square"></i> Nové podujatie
+    </button>
+  </ng-container>
+
+</ng-container>
+
+<ng-container *ngIf="selectedDetailKey">
+  <!-- RESERVATION DETAIL COMPONENT -->
+  <app-reservation-detail [reservationSchemeKey]="selectedDetailKey" [isAdmin]="isAdmin" [userKey]="userKey"
+    [userInfo]="userInfo" (onGoBack)="onGoBack()">
+  </app-reservation-detail>
+</ng-container>

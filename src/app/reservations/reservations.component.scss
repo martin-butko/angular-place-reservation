@@ -1,0 +1,17 @@
+@media screen and (max-width: 80em) {
+    :host ::ng-deep .ui-dialog {
+        width: 50vw !important;
+    }
+}
+
+@media screen and (max-width: 60em) {
+    :host ::ng-deep .ui-dialog {
+        width: 60vw !important;
+    }
+}
+
+@media screen and (max-width: 40em) {
+    :host ::ng-deep .ui-dialog {
+        width: 75vw !important;
+    }
+}
