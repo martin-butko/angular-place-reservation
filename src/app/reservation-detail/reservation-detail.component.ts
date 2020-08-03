@@ -120,9 +120,11 @@ export class ReservationDetailComponent implements OnInit {
         this.reservationScheme = reservationScheme;
 
         // Try to get MapImage
-        if (this.reservationScheme.mapKey) {
-          const mapKeyVal: string = this.reservationScheme.mapKey;
-          this.getMapImageByKey(mapKeyVal);
+        if (this.reservationScheme) {
+          if (this.reservationScheme.mapKey) {
+            const mapKeyVal: string = this.reservationScheme.mapKey;
+            this.getMapImageByKey(mapKeyVal);
+          }
         }
 
         // Change events
@@ -686,6 +688,7 @@ export class ReservationDetailComponent implements OnInit {
     // Unselect shape first
     this.unselectShape();
 
+    this.reservationScheme = null;
     this.onGoBack.emit();
   }
 
