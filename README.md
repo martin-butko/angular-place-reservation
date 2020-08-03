@@ -13,6 +13,12 @@ In event, you can add places on canvas. Places can be:
   - Rotated
  
 You can also integrate reservation components into your own project.
+
+# Required
+Node.js + NPM: https://nodejs.org/en/
+
+Angular CLI: In command line type: `npm install -g @angular/cli`
+
 # Dependencies
 `package.json`
 ```sh
